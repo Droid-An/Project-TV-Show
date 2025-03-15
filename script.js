@@ -17,15 +17,10 @@ const createFilmCard = (film) => {
 
 function setup() {
   const allEpisodes = getAllEpisodes();
-  makePageForEpisodes(allEpisodes);
   const filmCard = allEpisodes.map(createFilmCard);
   // Remember we need to append the card to the DOM for it to appear.
   document.body.append(...filmCard);
 }
 
-function makePageForEpisodes(episodeList) {
-  // const rootElem = document.getElementById("root");
-  // rootElem.textContent = `Got ${episodeList.length} episode(s)`;
-}
 
 window.onload = setup;

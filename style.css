@@ -14,18 +14,20 @@ body {
   flex-wrap: wrap;
   padding-left: 5%;
   padding-right: 5%;
-  justify-content: space-even;
+  justify-content: center;
   gap: 5%;
   row-gap: 60px;
 }
 
-section {
+article {
   width: 30%;
   background-color: beige;
   border-radius: 15px;
   text-align: center;
   padding: 0px;
   box-shadow: 7px 7px 5px rgb(228, 228, 228);
+  min-width: 300px;
+  box-sizing: border-box;
 }
 
 img {
