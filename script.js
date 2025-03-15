@@ -4,7 +4,8 @@ const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
   // Now we are querying our cloned fragment, not the entire page.
   const { name, season, number, image, summary } = film;
-  const title = `${name} - S${String(season).padStart(2, "0")}E${String(number
+  const title = `${name} - S${String(season).padStart(2, "0")}E${String(
+    number
   ).padStart(2, "0")}`;
   card.querySelector("h3").textContent = title;
   card.querySelector("summary").textContent = summary.replace(/<\/?p>/g, "");
@@ -14,15 +15,13 @@ const createFilmCard = (film) => {
   return card;
 };
 
-
 function setup() {
   const allEpisodes = getAllEpisodes();
   makePageForEpisodes(allEpisodes);
-  const filmCard = allEpisodes.map(createFilmCard)
+  const filmCard = allEpisodes.map(createFilmCard);
   // Remember we need to append the card to the DOM for it to appear.
   document.body.append(...filmCard);
 }
-
 
 function makePageForEpisodes(episodeList) {
   // const rootElem = document.getElementById("root");
