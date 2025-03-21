@@ -1,5 +1,10 @@
 body {
+  display: flex;
+  flex-direction: column;
   position: relative;
+  min-height: 100vh;
+  height: 100%;
+  margin: 0;
 }
 header {
   display: flex;
@@ -19,10 +24,12 @@ header {
 }
 
 footer {
-  bottom: 0px;
+  bottom: 0;
   right: 5px;
   text-align: center;
   margin-top: 20px;
+  left: 0;
+  width: 100%;
 }
 
 main {
@@ -34,6 +41,7 @@ main {
   justify-content: center;
   gap: 5%;
   row-gap: 60px;
+  flex: 1;
 }
 
 article {
