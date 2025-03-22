@@ -4,6 +4,8 @@ const main = document.querySelector(`#main`);
 const header = document.querySelector("#header");
 const inputSearch = document.querySelector("input");
 const episodesNumber = document.querySelector("#episodesNumber");
+const episodesSelect = document.querySelector("#episodes-select");
+const allEpisodes = getAllEpisodes();
 
 const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
@@ -18,8 +20,17 @@ const createFilmCard = (film) => {
   return card;
 };
 
+function createSelectorEpisodes(episodes) {
+  episodes.forEach((episode, index) => {
+    const option = document.createElement(`option`);
+    option.classList.add(`options`);
+    option.value = episode.id;
+    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")} - ${episode.name}`;
+    episodesSelect.appendChild(option);
+  });
+}
+
 function setup() {
-  const allEpisodes = getAllEpisodes();
   //creating a variable that will contain input value
   let search = "";
   //Rendering episodes
@@ -33,6 +44,8 @@ function setup() {
           .includes(search.toLowerCase())
       );
     });
+    createSelectorEpisodes(allEpisodes);
+
     //Rendering number of filtered episodes
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
 
@@ -47,6 +60,21 @@ function setup() {
     main.innerHTML = "";
     render();
   });
-}
 
+  episodesSelect.addEventListener("change", () => {
+    main.innerHTML = "";
+    const episodeValue = +episodesSelect.value;
+    if (episodeValue === 1111) {
+      render();
+      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
+    }
+    filteredEpisodes = allEpisodes.filter((episode) => {
+      // console.log(episode.id);
+      return episode.id === episodeValue;
+    });
+    const filmCard = filteredEpisodes.map(createFilmCard);
+    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
+    main.append(...filmCard);
+  });
+}
 window.onload = setup;
