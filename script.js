@@ -69,12 +69,11 @@ function setup() {
       episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
     }
     // could be replaced with find() to speed up search
-    filteredEpisodes = allEpisodes.filter((episode) => {
-      return episode.id === episodeValue;
-    });
-    console.log(filteredEpisodes)
+    filteredEpisodes = allEpisodes.find((episode) => 
+      episode.id == episodeValue);
+
     // no necessity in map as you only need to render one episode 
-    const filmCard = createFilmCard(filteredEpisodes[0]);
+    const filmCard = createFilmCard(filteredEpisodes);
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
     main.append(filmCard);
   });
