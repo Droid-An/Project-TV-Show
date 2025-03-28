@@ -5,7 +5,16 @@ const header = document.querySelector("#header");
 const inputSearch = document.querySelector("input");
 const episodesNumber = document.querySelector("#episodesNumber");
 const episodesSelect = document.querySelector("#episodes-select");
-const allEpisodes = getAllEpisodes();
+
+// Define state
+const state = {
+  films: []
+};
+
+// fetching data
+const endpoint = "https://api.tvmaze.com/shows/82/episodes"
+
+
 
 const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
@@ -31,11 +40,22 @@ function createSelectorEpisodes(episodes) {
 }
 
 function setup() {
+  const fetchFilms = async () => {
+    const response = await fetch(endpoint);
+    return await response.json();
+  };
+  
+  fetchFilms().then((films) => {
+    // When the fetchFilms Promise resolves, this callback will be called.
+    state.films = films;
+    render();
+  });
+
   //creating a variable that will contain input value
   let search = "";
   //Rendering episodes
   function render() {
-    const filteredEpisodes = allEpisodes.filter((episode) => {
+    const filteredEpisodes = state.films.filter((episode) => {
       return (
         episode.name.toLowerCase().includes(search.toLowerCase()) ||
         episode.summary
@@ -44,12 +64,13 @@ function setup() {
           .includes(search.toLowerCase())
       );
     });
-    createSelectorEpisodes(allEpisodes);
+    createSelectorEpisodes(state.films);
 
     //Rendering number of filtered episodes
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
+    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
 
     const filmCard = filteredEpisodes.map(createFilmCard);
+    main.innerHTML = "";
     // Remember we need to append the card to the DOM for it to appear.
     main.append(...filmCard);
   }
@@ -66,15 +87,15 @@ function setup() {
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
       render();
-      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
+      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     }
     // could be replaced with find() to speed up search
-    filteredEpisodes = allEpisodes.find((episode) => 
+    filteredEpisodes = state.films.find((episode) => 
       episode.id == episodeValue);
 
     // no necessity in map as you only need to render one episode 
     const filmCard = createFilmCard(filteredEpisodes);
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${allEpisodes.length} episodes`;
+    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     main.append(filmCard);
   });
 }
