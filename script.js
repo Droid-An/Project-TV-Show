@@ -5,24 +5,28 @@ const header = document.querySelector("#header");
 const inputSearch = document.querySelector("input");
 const episodesNumber = document.querySelector("#episodesNumber");
 const episodesSelect = document.querySelector("#episodes-select");
+const errorMessage = document.querySelector("#errorMessage");
+const loadingMessage = document.querySelector("#loadingMessage");
 
 // Define state
 const state = {
-  films: []
+  films: [],
 };
 
-// fetching data
-const endpoint = "https://api.tvmaze.com/shows/82/episodes"
-
-
+const endpoint = "https://api.tvmaze.com/shows/82/episodes";
 
 const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
   // Now we are querying our cloned fragment, not the entire page.
   const { name, season, number, image, summary } = film;
-  const title = `${name} - S${String(season).padStart(2, "0")}E${String(number).padStart(2, "0")}`;
+  const title = `${name} - S${String(season).padStart(2, "0")}E${String(
+    number
+  ).padStart(2, "0")}`;
   card.querySelector("h3").textContent = title;
-  card.querySelector("summary").textContent = summary.replace(/<\/?p>|<\/?br>/g, "");
+  card.querySelector("summary").textContent = summary.replace(
+    /<\/?p>|<\/?br>/g,
+    ""
+  );
   // console.log(image.medium)
   card.querySelector("img").setAttribute("src", image.medium);
   // Return the card, rather than directly appending it to the page
@@ -34,20 +38,31 @@ function createSelectorEpisodes(episodes) {
     const option = document.createElement(`option`);
     option.classList.add(`options`);
     option.value = episode.id;
-    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")} - ${episode.name}`;
+    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(
+      episode.number
+    ).padStart(2, "0")} - ${episode.name}`;
     episodesSelect.appendChild(option);
   });
 }
 
 function setup() {
+  // fetching data
   const fetchFilms = async () => {
-    const response = await fetch(endpoint);
-    return await response.json();
+    try {
+      errorMessage.style.display = `none`;
+      loadingMessage.textContent = "loading";
+      const response = await fetch(endpoint);
+      return await response.json();
+    } catch (error) {
+      errorMessage.style.display = `contents`;
+      errorMessage.textContent = error;
+    }
   };
-  
+
   fetchFilms().then((films) => {
     // When the fetchFilms Promise resolves, this callback will be called.
     state.films = films;
+    loadingMessage.style.display = `none`;
     render();
   });
 
@@ -55,6 +70,7 @@ function setup() {
   let search = "";
   //Rendering episodes
   function render() {
+
     const filteredEpisodes = state.films.filter((episode) => {
       return (
         episode.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -90,10 +106,11 @@ function setup() {
       episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     }
     // could be replaced with find() to speed up search
-    filteredEpisodes = state.films.find((episode) => 
-      episode.id == episodeValue);
+    filteredEpisodes = state.films.find(
+      (episode) => episode.id == episodeValue
+    );
 
-    // no necessity in map as you only need to render one episode 
+    // no necessity in map as you only need to render one episode
     const filmCard = createFilmCard(filteredEpisodes);
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     main.append(filmCard);
