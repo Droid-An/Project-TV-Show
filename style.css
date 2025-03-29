@@ -41,7 +41,6 @@ main {
   justify-content: center;
   gap: 5%;
   row-gap: 60px;
-  /* flex: 1; */
 }
 
 article {
