@@ -1,3 +1,5 @@
+"use strict";
+
 //Create film card
 const template = document.getElementById("film-card");
 const main = document.querySelector(`#main`);
@@ -7,13 +9,13 @@ const episodesNumber = document.querySelector("#episodesNumber");
 const episodesSelect = document.querySelector("#episodes-select");
 const errorMessage = document.querySelector("#errorMessage");
 const loadingMessage = document.querySelector("#loadingMessage");
+const showsSelect = document.querySelector("#show-select");
 
 // Define state
 const state = {
+  shows: [],
   films: [],
 };
-
-const endpoint = "https://api.tvmaze.com/shows";
 
 const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
@@ -37,28 +39,52 @@ function createSelectorEpisodes(episodes) {
     episodesSelect.appendChild(option);
   });
 }
+function createSelectorShows(shows) {
+  shows.forEach((show, index) => {
+    const option = document.createElement(`option`);
+    option.classList.add(`options`);
+    option.value = show.id;
+    option.textContent = show.name;
+    showsSelect.appendChild(option);
+  });
+}
 
 function setup() {
   // fetching data
-  const fetchFilms = async () => {
+
+  const fetchShows = async () => {
     try {
       errorMessage.style.display = `none`;
       loadingMessage.textContent = "loading";
-      const response = await fetch(endpoint);
-      return await response.json();
+      const response = await fetch(`https://api.tvmaze.com/shows`);
+      const data = await response.json();
+      console.log(data);
+      return data;
     } catch (error) {
       errorMessage.style.display = `contents`;
       errorMessage.textContent = error;
     }
   };
 
-  fetchFilms().then((films) => {
-    // When the fetchFilms Promise resolves, this callback will be called.
-    state.films = films;
+  fetchShows().then((shows) => {
+    // When the fetchShows Promise resolves, this callback will be called.
+    state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
     loadingMessage.style.display = `none`;
     render();
   });
 
+  const fetchEpisodes = async (episodeId) => {
+    try {
+      errorMessage.style.display = `none`;
+      loadingMessage.textContent = "loading";
+      const response = await fetch(`https://api.tvmaze.com/shows/${episodeId}/episodes`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      errorMessage.style.display = `contents`;
+      errorMessage.textContent = error;
+    }
+  };
   //creating a variable that will contain input value
   let search = "";
   //Rendering episodes
@@ -72,7 +98,7 @@ function setup() {
           .includes(search.toLowerCase())
       );
     });
-    createSelectorEpisodes(state.films);
+    createSelectorShows(state.shows);
 
     //Rendering number of filtered episodes
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
@@ -95,15 +121,29 @@ function setup() {
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
       render();
-      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     }
     // could be replaced with find() to speed up search
-    filteredEpisodes = state.films.find((episode) => episode.id == episodeValue);
 
+    const filteredEpisode = state.films.find((episode) => episode.id == episodeValue);
+    if (!filteredEpisode) {
+      return;
+    }
     // no necessity in map as you only need to render one episode
-    const filmCard = createFilmCard(filteredEpisodes);
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
+    const filmCard = createFilmCard(filteredEpisode);
+    episodesNumber.textContent = `Displaying ${1}/${state.films.length} episodes`;
     main.append(filmCard);
   });
+  showsSelect.addEventListener(`change`, () => {
+    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+    main.innerHTML = "";
+    const showValue = +showsSelect.value;
+    fetchEpisodes(showValue).then((episode) => {
+      state.films = episode.sort((a, b) => a.name.localeCompare(b.name));
+      render();
+
+      createSelectorEpisodes(state.films);
+    });
+  });
 }
+
 window.onload = setup;
