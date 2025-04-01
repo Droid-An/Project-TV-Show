@@ -1,5 +1,3 @@
-"use strict";
-
 //Create film card
 const template = document.getElementById("film-card");
 const main = document.querySelector(`#main`);
@@ -23,9 +21,17 @@ const createFilmCard = (film) => {
   const { name, season, number, image, summary } = film;
   const title = `${name} - S${String(season).padStart(2, "0")}E${String(number).padStart(2, "0")}`;
   card.querySelector("h3").textContent = title;
-  card.querySelector("summary").textContent = summary.replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g, "");
+  card.querySelector("summary").textContent = summary?.replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g, "");
   // console.log(image.medium)
-  card.querySelector("img").setAttribute("src", image.medium);
+  console.log(film);
+  card
+    .querySelector("img")
+    // added default img in case image:null on few tvShows
+    .setAttribute(
+      "src",
+      image?.medium ??
+        "https://thumbs.dreamstime.com/b/%D0%B7%D0%BD%D0%B0%D0%BA-%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D1%8B%D0%B9-%D0%B8%D0%BB%D0%BB%D1%8E%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0-%D0%BA%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B3%D0%BE-%D1%86%D0%B2%D0%B5%D1%82%D0%B0-%D0%B7%D0%BD%D0%B0%D0%BA%D0%B0-156620179.jpg"
+    );
   // Return the card, rather than directly appending it to the page
   return card;
 };
@@ -79,12 +85,19 @@ function setup() {
       loadingMessage.textContent = "loading";
       const response = await fetch(`https://api.tvmaze.com/shows/${episodeId}/episodes`);
       const data = await response.json();
+      console.log(data);
       return data;
     } catch (error) {
       errorMessage.style.display = `contents`;
       errorMessage.textContent = error;
     }
   };
+  fetchEpisodes(124).then((episode) => {
+    state.films = episode.sort((a, b) => a.name.localeCompare(b.name));
+    render();
+
+    createSelectorEpisodes(state.films);
+  });
   //creating a variable that will contain input value
   let search = "";
   //Rendering episodes
