@@ -7,28 +7,31 @@ const episodesNumber = document.querySelector("#episodesNumber");
 const episodesSelect = document.querySelector("#episodes-select");
 const errorMessage = document.querySelector("#errorMessage");
 const loadingMessage = document.querySelector("#loadingMessage");
+const showsSelect = document.querySelector("#show-select");
 
 // Define state
 const state = {
+  shows: [],
   films: [],
 };
-
-const endpoint = "https://api.tvmaze.com/shows/82/episodes";
 
 const createFilmCard = (film) => {
   const card = template.content.cloneNode(true);
   // Now we are querying our cloned fragment, not the entire page.
   const { name, season, number, image, summary } = film;
-  const title = `${name} - S${String(season).padStart(2, "0")}E${String(
-    number
-  ).padStart(2, "0")}`;
+  const title = `${name} - S${String(season).padStart(2, "0")}E${String(number).padStart(2, "0")}`;
   card.querySelector("h3").textContent = title;
-  card.querySelector("summary").textContent = summary.replace(
-    /<\/?p>|<\/?br>/g,
-    ""
-  );
+  card.querySelector("summary").textContent = summary?.replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g, "");
   // console.log(image.medium)
-  card.querySelector("img").setAttribute("src", image.medium);
+  console.log(film);
+  card
+    .querySelector("img")
+    // added default img in case image:null on few tvShows
+    .setAttribute(
+      "src",
+      image?.medium ??
+        "https://thumbs.dreamstime.com/b/%D0%B7%D0%BD%D0%B0%D0%BA-%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D1%8B%D0%B9-%D0%B8%D0%BB%D0%BB%D1%8E%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0-%D0%BA%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B3%D0%BE-%D1%86%D0%B2%D0%B5%D1%82%D0%B0-%D0%B7%D0%BD%D0%B0%D0%BA%D0%B0-156620179.jpg"
+    );
   // Return the card, rather than directly appending it to the page
   return card;
 };
@@ -38,49 +41,77 @@ function createSelectorEpisodes(episodes) {
     const option = document.createElement(`option`);
     option.classList.add(`options`);
     option.value = episode.id;
-    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(
-      episode.number
-    ).padStart(2, "0")} - ${episode.name}`;
+    option.textContent = `S${String(episode.season).padStart(2, "0")}E${String(episode.number).padStart(2, "0")} - ${episode.name}`;
     episodesSelect.appendChild(option);
+  });
+}
+function createSelectorShows(shows) {
+  shows.forEach((show, index) => {
+    const option = document.createElement(`option`);
+    option.classList.add(`options`);
+    option.value = show.id;
+    option.textContent = show.name;
+    showsSelect.appendChild(option);
   });
 }
 
 function setup() {
   // fetching data
-  const fetchFilms = async () => {
+
+  const fetchShows = async () => {
     try {
       errorMessage.style.display = `none`;
       loadingMessage.textContent = "loading";
-      const response = await fetch(endpoint);
-      return await response.json();
+      const response = await fetch(`https://api.tvmaze.com/shows`);
+      const data = await response.json();
+      console.log(data);
+      return data;
     } catch (error) {
       errorMessage.style.display = `contents`;
       errorMessage.textContent = error;
     }
   };
 
-  fetchFilms().then((films) => {
-    // When the fetchFilms Promise resolves, this callback will be called.
-    state.films = films;
+  fetchShows().then((shows) => {
+    // When the fetchShows Promise resolves, this callback will be called.
+    state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
     loadingMessage.style.display = `none`;
     render();
   });
 
+  const fetchEpisodes = async (episodeId) => {
+    try {
+      errorMessage.style.display = `none`;
+      loadingMessage.textContent = "loading";
+      const response = await fetch(`https://api.tvmaze.com/shows/${episodeId}/episodes`);
+      const data = await response.json();
+      console.log(data);
+      return data;
+    } catch (error) {
+      errorMessage.style.display = `contents`;
+      errorMessage.textContent = error;
+    }
+  };
+  fetchEpisodes(124).then((episode) => {
+    state.films = episode.sort((a, b) => a.name.localeCompare(b.name));
+    render();
+
+    createSelectorEpisodes(state.films);
+  });
   //creating a variable that will contain input value
   let search = "";
   //Rendering episodes
   function render() {
-
     const filteredEpisodes = state.films.filter((episode) => {
       return (
         episode.name.toLowerCase().includes(search.toLowerCase()) ||
         episode.summary
           .toLowerCase()
-          .replace(/<\/?p>|<\/?br>/g, "")
+          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
           .includes(search.toLowerCase())
       );
     });
-    createSelectorEpisodes(state.films);
+    createSelectorShows(state.shows);
 
     //Rendering number of filtered episodes
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
@@ -103,17 +134,29 @@ function setup() {
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
       render();
-      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
     }
     // could be replaced with find() to speed up search
-    filteredEpisodes = state.films.find(
-      (episode) => episode.id == episodeValue
-    );
 
+    const filteredEpisode = state.films.find((episode) => episode.id == episodeValue);
+    if (!filteredEpisode) {
+      return;
+    }
     // no necessity in map as you only need to render one episode
-    const filmCard = createFilmCard(filteredEpisodes);
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.films.length} episodes`;
+    const filmCard = createFilmCard(filteredEpisode);
+    episodesNumber.textContent = `Displaying ${1}/${state.films.length} episodes`;
     main.append(filmCard);
   });
+  showsSelect.addEventListener(`change`, () => {
+    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+    main.innerHTML = "";
+    const showValue = +showsSelect.value;
+    fetchEpisodes(showValue).then((episode) => {
+      state.films = episode.sort((a, b) => a.name.localeCompare(b.name));
+      render();
+
+      createSelectorEpisodes(state.films);
+    });
+  });
 }
+
 window.onload = setup;
