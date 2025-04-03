@@ -69,3 +69,11 @@ h3 {
 summary {
   margin: 20px;
 }
+
+h1 {
+  background-color: rgba(0, 0, 0, 0.644);
+  color: aliceblue;
+  text-align: center;
+  margin-top: 0px;
+  padding-top: 0.67em;
+}
