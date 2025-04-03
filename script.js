@@ -13,7 +13,7 @@ const showsSelect = document.querySelector("#show-select");
 // Define state
 const state = {
   shows: [],
-  episodes: [],
+  episodes: {},
   searchTerm: "",
 };
 
@@ -113,6 +113,41 @@ const fetchEpisodes = async (showId) => {
   }
 };
 
+function fetchAndAddEpisodes(id) {
+  fetchEpisodes(id).then((data) => {
+    //add received list of episodes to the state
+    state.episodes[id] = data;
+    createSelectorEpisodes(state.episodes[id]);
+    //now we have list of episodes, so we can render them
+    render();
+  });
+}
+//Rendering episodes
+function render() {
+  const showId = showsSelect.value;
+  const filteredEpisodes = state.episodes[showId].filter((episode) => {
+    return (
+      episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+      episode.summary
+        .toLowerCase()
+        .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+        .includes(state.searchTerm.toLowerCase())
+    );
+  });
+
+  //Rendering number of filtered episodes
+  episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
+    state.episodes[showsSelect.value].length
+  } episodes`;
+
+  const episodeCard = filteredEpisodes.map(createEpisodeCard);
+  showCard = state.shows.map(createShowCard);
+  main.innerHTML = "";
+  // Remember we need to append the card to the DOM for it to appear.
+  main.append(...episodeCard);
+  main.append(...showCard);
+}
+
 function setup() {
   // fetching data
 
@@ -121,42 +156,9 @@ function setup() {
     state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
     createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
-
+    fetchAndAddEpisodes(state.shows[0].id);
   });
 
-
-
-  fetchEpisodes(124).then((episodes) => {
-    state.episodes = episodes;
-    render();
-    createSelectorEpisodes(state.episodes);
-
-
-  });
-  //Rendering episodes
-  function render() {
-    const filteredEpisodes = state.episodes.filter((episode) => {
-      return (
-        episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-        episode.summary
-          .toLowerCase()
-          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
-          .includes(state.searchTerm.toLowerCase())
-      );
-    });
-
-
-    //Rendering number of filtered episodes
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.episodes.length} episodes`;
-
-    const episodeCard = filteredEpisodes.map(createEpisodeCard);
-    // showCard = state.shows.map(createShowCard);
-    main.innerHTML = "";
-    // Remember we need to append the card to the DOM for it to appear.
-    main.append(...episodeCard);
-    // main.append(...showCard);
-  }
-  render();
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
@@ -164,37 +166,37 @@ function setup() {
   });
 
   episodesSelect.addEventListener("change", () => {
-    main.innerHTML = "";
+
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
+      console.log("1111")
       render();
+    } else {
+      main.innerHTML = "";
+  
+      const selectedEpisode = state.episodes[showsSelect.value].find(
+        (episode) => episode.id == episodeValue
+      );
+      if (!selectedEpisode) {
+        return;
+      }
+      const selectedEpisodeCard = createEpisodeCard(selectedEpisode);
+      episodesNumber.textContent = `Displaying ${1}/${
+        state.episodes.length
+      } episodes`;
+      main.append(selectedEpisodeCard);
     }
-    // could be replaced with find() to speed up search
-
-    const selectedEpisode = state.episodes.find(
-      (episode) => episode.id == episodeValue
-    );
-    if (!selectedEpisode) {
-      return;
-    }
-    // no necessity in map as you only need to render one episode
-    const selectedEpisodeCard = createEpisodeCard(selectedEpisode);
-    episodesNumber.textContent = `Displaying ${1}/${
-      state.episodes.length
-    } episodes`;
-    main.append(selectedEpisodeCard);
   });
 
   showsSelect.addEventListener(`change`, () => {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     main.innerHTML = "";
-    const showValue = +showsSelect.value;
-    fetchEpisodes(showValue).then((episodes) => {
-      state.episodes = episodes;
+    const showValue = showsSelect.value;
+    if (Object.keys(state.episodes).includes(showValue)) {
       render();
-
-      createSelectorEpisodes(state.episodes);
-    });
+    } else {
+      fetchAndAddEpisodes(showValue);
+    }
   });
 }
 
