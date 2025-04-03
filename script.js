@@ -119,14 +119,19 @@ function setup() {
   fetchShows().then((shows) => {
     // When the fetchShows Promise resolves, this callback will be called.
     state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
+    createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
+
   });
+
+
 
   fetchEpisodes(124).then((episodes) => {
     state.episodes = episodes;
     render();
-
     createSelectorEpisodes(state.episodes);
+
+
   });
   //Rendering episodes
   function render() {
@@ -139,7 +144,7 @@ function setup() {
           .includes(state.searchTerm.toLowerCase())
       );
     });
-    createSelectorShows(state.shows);
+
 
     //Rendering number of filtered episodes
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${state.episodes.length} episodes`;
@@ -155,7 +160,6 @@ function setup() {
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
-    main.innerHTML = "";
     render();
   });
 
@@ -167,19 +171,20 @@ function setup() {
     }
     // could be replaced with find() to speed up search
 
-    const filteredEpisode = state.episodes.find(
+    const selectedEpisode = state.episodes.find(
       (episode) => episode.id == episodeValue
     );
-    if (!filteredEpisode) {
+    if (!selectedEpisode) {
       return;
     }
     // no necessity in map as you only need to render one episode
-    const episodeCard = createEpisodeCard(filteredEpisode);
+    const selectedEpisodeCard = createEpisodeCard(selectedEpisode);
     episodesNumber.textContent = `Displaying ${1}/${
       state.episodes.length
     } episodes`;
-    main.append(episodeCard);
+    main.append(selectedEpisodeCard);
   });
+
   showsSelect.addEventListener(`change`, () => {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     main.innerHTML = "";
