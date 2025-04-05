@@ -1,3 +1,4 @@
+"use strict";
 //Create episode card
 const episodeCardTemplate = document.getElementById("episode-card");
 const showCardTemplate = document.getElementById("show-card");
@@ -9,12 +10,14 @@ const episodesSelect = document.querySelector("#episodes-select");
 const errorMessage = document.querySelector("#errorMessage");
 const loadingMessage = document.querySelector("#loadingMessage");
 const showsSelect = document.querySelector("#show-select");
+const h = document.querySelector("h1");
 
 // Define state
 const state = {
   shows: [],
   episodes: {},
   searchTerm: "",
+  showsListing: true,
 };
 
 const createEpisodeCard = (episode) => {
@@ -124,27 +127,58 @@ function fetchAndAddEpisodes(id) {
 }
 //Rendering episodes
 function render() {
-  const showId = showsSelect.value;
-  const filteredEpisodes = state.episodes[showId].filter((episode) => {
+  if (state.showsListing) {
+    filteredShows = state.shows.filter((show) => {
+      return (
+        show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+        show.summary
+          .toLowerCase()
+          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+          .includes(state.searchTerm.toLowerCase())
+      );
+    });
+    main.innerHTML = "";
+    episodesNumber.textContent = "";
+    showCard = filteredShows.map(createShowCard);
+    main.append(...showCard);
+  } else {
+    const showId = showsSelect.value;
+    const filteredEpisodes = state.episodes[showId].filter((episode) => {
+      return (
+        episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+        episode.summary
+          .toLowerCase()
+          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+          .includes(state.searchTerm.toLowerCase())
+      );
+    });
+
+    //Rendering number of filtered episodes
+    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
+      state.episodes[showsSelect.value].length
+    } episodes`;
+
+    const episodeCard = filteredEpisodes.map(createEpisodeCard);
+
+    main.innerHTML = "";
+    // Remember we need to append the card to the DOM for it to appear.
+    main.append(...episodeCard);
+    console.log(art);
+  }
+}
+
+function renderShowsList() {
+  const filteredShows = state.shows.filter((show) => {
     return (
-      episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-      episode.summary
+      show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+      show.summary
         .toLowerCase()
         .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
         .includes(state.searchTerm.toLowerCase())
     );
   });
-
-  //Rendering number of filtered episodes
-  episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
-    state.episodes[showsSelect.value].length
-  } episodes`;
-
-  const episodeCard = filteredEpisodes.map(createEpisodeCard);
-  showCard = state.shows.map(createShowCard);
   main.innerHTML = "";
-  // Remember we need to append the card to the DOM for it to appear.
-  main.append(...episodeCard);
+  const showCard = filteredShows.map(createShowCard);
   main.append(...showCard);
 }
 
@@ -156,7 +190,8 @@ function setup() {
     state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
     createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
-    fetchAndAddEpisodes(state.shows[0].id);
+    console.log("renderShowsList");
+    renderShowsList();
   });
 
   // Implementing live search filtering
@@ -166,14 +201,13 @@ function setup() {
   });
 
   episodesSelect.addEventListener("change", () => {
-
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
-      console.log("1111")
+      console.log("1111");
       render();
     } else {
       main.innerHTML = "";
-  
+
       const selectedEpisode = state.episodes[showsSelect.value].find(
         (episode) => episode.id == episodeValue
       );
@@ -190,6 +224,7 @@ function setup() {
 
   showsSelect.addEventListener(`change`, () => {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+    state.showsListing = false;
     main.innerHTML = "";
     const showValue = showsSelect.value;
     if (Object.keys(state.episodes).includes(showValue)) {
@@ -198,6 +233,17 @@ function setup() {
       fetchAndAddEpisodes(showValue);
     }
   });
+
+  main.addEventListener("click", (event) => {
+    console.log(event.target.classList)
+    console.log(event.target.classList.contains("showTitle"));
+  });
 }
 
+h.addEventListener(`click`, () => {
+  state.showsListing = true;
+  render();
+});
+
 window.onload = setup;
+// showLink.addEventListener(`click`, govno())
