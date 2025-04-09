@@ -46,7 +46,8 @@ const createEpisodeCard = (episode) => {
 
 const createShowCard = (show) => {
   const showCard = showCardTemplate.content.cloneNode(true);
-  const { name, image, summary, rating, genres, status, runtime } = show;
+  const { id, name, image, summary, rating, genres, status, runtime } = show;
+  showCard.querySelector("article").setAttribute("id", `${id}`);
   showCard.querySelector("h3").textContent = name;
   showCard
     .querySelector("img")
@@ -60,10 +61,10 @@ const createShowCard = (show) => {
     /<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g,
     ""
   );
-  showCard.querySelector("#score").textContent = rating.average;
-  showCard.querySelector("#genre").textContent = genres;
-  showCard.querySelector("#status").textContent = status;
-  showCard.querySelector("#runtime").textContent = runtime;
+  showCard.querySelector(".score").textContent = rating.average;
+  showCard.querySelector(".genre").textContent = genres;
+  showCard.querySelector(".status").textContent = status;
+  showCard.querySelector(".runtime").textContent = runtime;
   return showCard;
 };
 
@@ -120,6 +121,7 @@ function fetchAndAddEpisodes(id) {
   fetchEpisodes(id).then((data) => {
     //add received list of episodes to the state
     state.episodes[id] = data;
+    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     createSelectorEpisodes(state.episodes[id]);
     //now we have list of episodes, so we can render them
     render();
@@ -128,7 +130,7 @@ function fetchAndAddEpisodes(id) {
 //Rendering episodes
 function render() {
   if (state.showsListing) {
-    filteredShows = state.shows.filter((show) => {
+    let filteredShows = state.shows.filter((show) => {
       return (
         show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
         show.summary
@@ -139,7 +141,7 @@ function render() {
     });
     main.innerHTML = "";
     episodesNumber.textContent = "";
-    showCard = filteredShows.map(createShowCard);
+    let showCard = filteredShows.map(createShowCard);
     main.append(...showCard);
   } else {
     const showId = showsSelect.value;
@@ -163,7 +165,6 @@ function render() {
     main.innerHTML = "";
     // Remember we need to append the card to the DOM for it to appear.
     main.append(...episodeCard);
-    console.log(art);
   }
 }
 
@@ -181,6 +182,7 @@ function renderShowsList() {
   const showCard = filteredShows.map(createShowCard);
   main.append(...showCard);
 }
+
 
 function setup() {
   // fetching data
@@ -225,7 +227,6 @@ function setup() {
   showsSelect.addEventListener(`change`, () => {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     state.showsListing = false;
-    main.innerHTML = "";
     const showValue = showsSelect.value;
     if (Object.keys(state.episodes).includes(showValue)) {
       render();
@@ -235,10 +236,31 @@ function setup() {
   });
 
   main.addEventListener("click", (event) => {
-    console.log(event.target.classList)
-    console.log(event.target.classList.contains("showTitle"));
+    if (event.target.classList.contains("showTitle")) {
+      // make a function for a code inside the shows select event listener and paste that function de4claration here
+      episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+      state.showsListing = false;
+      showsSelect.value = event.target.closest("article").id
+      const showValue = showsSelect.value;
+      if (Object.keys(state.episodes).includes(showValue)) {
+        render();
+      } else {
+        fetchAndAddEpisodes(showValue);
+      }
+    }
   });
 }
+
+// function handleShowSelect() {
+//   episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+//   state.showsListing = false;
+//   const showValue = showsSelect.value;
+//   if (Object.keys(state.episodes).includes(showValue)) {
+//     render();
+//   } else {
+//     fetchAndAddEpisodes(showValue);
+//   }
+// }
 
 h.addEventListener(`click`, () => {
   state.showsListing = true;
@@ -246,4 +268,3 @@ h.addEventListener(`click`, () => {
 });
 
 window.onload = setup;
-// showLink.addEventListener(`click`, govno())
