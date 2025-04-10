@@ -57,10 +57,13 @@ const createShowCard = (show) => {
       image?.medium ??
         "https://thumbs.dreamstime.com/b/%D0%B7%D0%BD%D0%B0%D0%BA-%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D1%8B%D0%B9-%D0%B8%D0%BB%D0%BB%D1%8E%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0-%D0%BA%D0%BD%D0%BE%D0%BF%D0%BA%D0%B0-%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B3%D0%BE-%D1%86%D0%B2%D0%B5%D1%82%D0%B0-%D0%B7%D0%BD%D0%B0%D0%BA%D0%B0-156620179.jpg"
     );
-  showCard.querySelector("summary").textContent = summary?.replace(
-    /<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g,
-    ""
-  );
+
+  if (showCard.querySelector("summary")) {
+    showCard.querySelector("summary").textContent = summary?.replace(
+      /<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/> /g,
+      ""
+    );
+  }
   showCard.querySelector(".score").textContent = rating.average;
   showCard.querySelector(".genre").textContent = genres;
   showCard.querySelector(".status").textContent = status;
@@ -121,7 +124,6 @@ function fetchAndAddEpisodes(id) {
   fetchEpisodes(id).then((data) => {
     //add received list of episodes to the state
     state.episodes[id] = data;
-    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     createSelectorEpisodes(state.episodes[id]);
     //now we have list of episodes, so we can render them
     render();
@@ -144,46 +146,62 @@ function render() {
     let showCard = filteredShows.map(createShowCard);
     main.append(...showCard);
   } else {
-    const showId = showsSelect.value;
-    const filteredEpisodes = state.episodes[showId].filter((episode) => {
-      return (
-        episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-        episode.summary
-          .toLowerCase()
-          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
-          .includes(state.searchTerm.toLowerCase())
-      );
-    });
+    const filteredEpisodes = filterEpisodes()
 
     //Rendering number of filtered episodes
     episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
       state.episodes[showsSelect.value].length
     } episodes`;
-
     const episodeCard = filteredEpisodes.map(createEpisodeCard);
-
     main.innerHTML = "";
     // Remember we need to append the card to the DOM for it to appear.
     main.append(...episodeCard);
   }
 }
 
-function renderShowsList() {
-  const filteredShows = state.shows.filter((show) => {
+function filterEpisodes() {
+  const showId = showsSelect.value;
+  const filteredEpisodes = state.episodes[showId].filter((episode) => {
     return (
-      show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-      show.summary
+      episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+      episode.summary
         .toLowerCase()
         .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
         .includes(state.searchTerm.toLowerCase())
     );
   });
-  main.innerHTML = "";
-  const showCard = filteredShows.map(createShowCard);
-  main.append(...showCard);
+  return filteredEpisodes;
 }
 
+//now function render renders shows list and episodes list
+// function renderShowsList() {
+//   const filteredShows = state.shows.filter((show) => {
+//     return (
+//       show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+//       show.summary
+//         .toLowerCase()
+//         .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+//         .includes(state.searchTerm.toLowerCase())
+//     );
+//   });
+//   main.innerHTML = "";
+//   const showCard = filteredShows.map(createShowCard);
+//   main.append(...showCard);
+// }
 
+function handleShowSelect(event) {
+  if (event.target.classList.contains("showTitle")) {
+    showsSelect.value = event.target.closest("article").id;
+  }
+  episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+  state.showsListing = false;
+  const showValue = showsSelect.value;
+  if (Object.keys(state.episodes).includes(showValue)) {
+    render();
+  } else {
+    fetchAndAddEpisodes(showValue);
+  }
+}
 function setup() {
   // fetching data
 
@@ -193,7 +211,7 @@ function setup() {
     createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
     console.log("renderShowsList");
-    renderShowsList();
+    render();
   });
 
   // Implementing live search filtering
@@ -224,43 +242,9 @@ function setup() {
     }
   });
 
-  showsSelect.addEventListener(`change`, () => {
-    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
-    state.showsListing = false;
-    const showValue = showsSelect.value;
-    if (Object.keys(state.episodes).includes(showValue)) {
-      render();
-    } else {
-      fetchAndAddEpisodes(showValue);
-    }
-  });
-
-  main.addEventListener("click", (event) => {
-    if (event.target.classList.contains("showTitle")) {
-      // make a function for a code inside the shows select event listener and paste that function de4claration here
-      episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
-      state.showsListing = false;
-      showsSelect.value = event.target.closest("article").id
-      const showValue = showsSelect.value;
-      if (Object.keys(state.episodes).includes(showValue)) {
-        render();
-      } else {
-        fetchAndAddEpisodes(showValue);
-      }
-    }
-  });
+  showsSelect.addEventListener(`change`, handleShowSelect);
+  main.addEventListener("click", (event) => handleShowSelect(event));
 }
-
-// function handleShowSelect() {
-//   episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
-//   state.showsListing = false;
-//   const showValue = showsSelect.value;
-//   if (Object.keys(state.episodes).includes(showValue)) {
-//     render();
-//   } else {
-//     fetchAndAddEpisodes(showValue);
-//   }
-// }
 
 h.addEventListener(`click`, () => {
   state.showsListing = true;
