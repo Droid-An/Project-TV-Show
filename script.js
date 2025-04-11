@@ -124,7 +124,6 @@ function fetchAndAddEpisodes(id) {
   fetchEpisodes(id).then((data) => {
     //add received list of episodes to the state
     state.episodes[id] = data;
-    createSelectorEpisodes(state.episodes[id]);
     //now we have list of episodes, so we can render them
     renderEpisodes(state.episodes[id]);
   });
@@ -147,14 +146,15 @@ function render() {
     main.append(...showCard);
   } else {
     if (state.searchTerm == "") {
-      episodesNumber.textContent = `Displaying ${state.episodes[showsSelect.value].length}/${
+      episodesNumber.textContent = `Displaying ${
         state.episodes[showsSelect.value].length
-      } episodes`;
-      const episodeCard = state.episodes[showsSelect.value].map(createEpisodeCard)
+      }/${state.episodes[showsSelect.value].length} episodes`;
+      const episodeCard =
+        state.episodes[showsSelect.value].map(createEpisodeCard);
       main.innerHTML = "";
       main.append(...episodeCard);
     } else {
-      const filteredEpisodes = filterEpisodes()
+      const filteredEpisodes = filterEpisodes();
 
       //Rendering number of filtered episodes
       episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
@@ -169,7 +169,8 @@ function render() {
 }
 
 //dividing render function into render shows and render episodes
-function renderEpisodes (episodes) {
+function renderEpisodes(episodes) {
+  createSelectorEpisodes(episodes);
   episodesNumber.textContent = `Displaying ${episodes.length}/${
     state.episodes[showsSelect.value].length
   } episodes`;
@@ -178,25 +179,28 @@ function renderEpisodes (episodes) {
   main.append(...episodeCard);
 }
 
-function renderShows () {
-    let filteredShows = state.shows.filter((show) => {
-      return (
-        show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-        show.summary
-          .toLowerCase()
-          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
-          .includes(state.searchTerm.toLowerCase())
-      );
-    });
-    main.innerHTML = "";
-    episodesNumber.textContent = "";
-    let showCard = filteredShows.map(createShowCard);
-    main.append(...showCard);
+function renderShows() {
+  let filteredShows = state.shows.filter((show) => {
+    return (
+      show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+      show.summary
+        .toLowerCase()
+        .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+        .includes(state.searchTerm.toLowerCase())
+    );
+  });
+  main.innerHTML = "";
+  episodesNumber.textContent = "";
+  let showCard = filteredShows.map(createShowCard);
+  main.append(...showCard);
 }
 
 function filterEpisodes() {
   const showId = showsSelect.value;
-  const filteredEpisodes = state.episodes[showId].filter((episode) => {
+  const notNullEpisodes = state.episodes[showId].filter((episode) => {
+    return (episode.summary != null);
+  });
+  const filteredEpisodes = notNullEpisodes.filter((episode) => {
     return (
       episode.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
       episode.summary
@@ -208,19 +212,30 @@ function filterEpisodes() {
   return filteredEpisodes;
 }
 
-function handleShowSelect(event) {
-  if (event.target.classList.contains("showTitle")) {
-    showsSelect.value = event.target.closest("article").id;
-  }
+function handleShowSelect() {
   episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
   state.showsListing = false;
-  const showValue = showsSelect.value;
-  if (Object.keys(state.episodes).includes(showValue)) {
-    renderEpisodes(state.episodes[showValue]);
+  if (Object.keys(state.episodes).includes(showsSelect.value)) {
+    renderEpisodes(state.episodes[showsSelect.value]);
   } else {
-    fetchAndAddEpisodes(showValue);
+    fetchAndAddEpisodes(showsSelect.value);
   }
 }
+
+function handleShowTitleClick(event) {
+  if (event.target.classList.contains("showTitle") && state.showsListing) {
+    showsSelect.value = event.target.closest("article").id;
+    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+    state.showsListing = false;
+    const showValue = showsSelect.value;
+    if (Object.keys(state.episodes).includes(showValue)) {
+      renderEpisodes(state.episodes[showValue]);
+    } else {
+      fetchAndAddEpisodes(showValue);
+    }
+  }
+}
+
 function setup() {
   // fetching data
 
@@ -236,11 +251,17 @@ function setup() {
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
+    console.log(state.searchTerm)
     if (state.showsListing) {
-      renderShows()
+      renderShows();
     } else {
-      const filteredEpisodes = filterEpisodes()
-      renderEpisodes(filteredEpisodes);
+      if (state.searchTerm.length == 0) {
+        renderEpisodes(state.episodes[showsSelect.value])
+      } else {
+        const filteredEpisodes = filterEpisodes();
+        renderEpisodes(filteredEpisodes);
+
+      }
     }
   });
 
@@ -267,7 +288,7 @@ function setup() {
   });
 
   showsSelect.addEventListener(`change`, handleShowSelect);
-  main.addEventListener("click", (event) => handleShowSelect(event));
+  main.addEventListener("click", (event) => handleShowTitleClick(event));
 }
 
 h.addEventListener(`click`, () => {
