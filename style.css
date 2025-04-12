@@ -42,8 +42,8 @@ main {
   gap: 5%;
   row-gap: 60px;
 }
-
-article {
+/* Episode design */
+.episodeCard {
   width: 30%;
   background-color: beige;
   border-radius: 15px;
@@ -54,23 +54,56 @@ article {
   box-sizing: border-box;
 }
 
-img {
+.showCard {
+ width: 80%;
+}
+
+.episodeImage {
   width: 80%;
   margin-top: 10px;
 }
 
-h3 {
+.episodeTitle {
   margin: 0px;
   padding: 40px;
   border: 2px solid black;
   border-radius: 15px;
 }
 
-summary {
+.episodeSummary {
   margin: 20px;
 }
+/* End of episode design */
 
-h1 {
+
+/* Show design */
+.showCard {
+  width: 100%;
+  padding: 20px;
+  background-color: rgb(203, 214, 194);
+
+}
+
+.showTitle {
+  max-width: 60% ;
+}
+.cardContent {
+  display: flex;
+}
+
+.showSummary {
+  margin: 0px 50px;
+  min-width: 60%;
+}
+.info {
+  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between  ;
+  min-width: 13%;
+} 
+/* end of Show design */
+#head {
   background-color: rgba(0, 0, 0, 0.644);
   color: aliceblue;
   text-align: center;

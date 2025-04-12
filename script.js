@@ -5,7 +5,7 @@ const showCardTemplate = document.getElementById("show-card");
 const main = document.querySelector(`#main`);
 const header = document.querySelector("#header");
 const inputSearch = document.querySelector("input");
-const episodesNumber = document.querySelector("#episodesNumber");
+const OccurrenceOfAValue = document.querySelector("#OccurrenceOfAValue");
 const episodesSelect = document.querySelector("#episodes-select");
 const errorMessage = document.querySelector("#errorMessage");
 const loadingMessage = document.querySelector("#loadingMessage");
@@ -48,7 +48,7 @@ const createShowCard = (show) => {
   const showCard = showCardTemplate.content.cloneNode(true);
   const { id, name, image, summary, rating, genres, status, runtime } = show;
   showCard.querySelector("article").setAttribute("id", `${id}`);
-  showCard.querySelector("h3").textContent = name;
+  showCard.querySelector("h2").textContent = name;
   showCard
     .querySelector("img")
     // added default img in case image:null on few tvShows
@@ -64,10 +64,10 @@ const createShowCard = (show) => {
       ""
     );
   }
-  showCard.querySelector(".score").textContent = rating.average;
-  showCard.querySelector(".genre").textContent = genres;
-  showCard.querySelector(".status").textContent = status;
-  showCard.querySelector(".runtime").textContent = runtime;
+  showCard.querySelector(".score").textContent = `Rated: ${rating.average}`;
+  showCard.querySelector(".genre").textContent = `Genres: ${genres}`;
+  showCard.querySelector(".status").textContent = `Status: ${status}`;
+  showCard.querySelector(".runtime").textContent = `Runtime: ${runtime}`;
   return showCard;
 };
 
@@ -129,50 +129,51 @@ function fetchAndAddEpisodes(id) {
   });
 }
 //Rendering episodes
-function render() {
-  if (state.showsListing) {
-    episodesSelect.style.display = `none`;
-    let filteredShows = state.shows.filter((show) => {
-      return (
-        show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-        show.summary
-          .toLowerCase()
-          .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
-          .includes(state.searchTerm.toLowerCase())
-      );
-    });
-    main.innerHTML = "";
-    episodesNumber.textContent = "";
-    let showCard = filteredShows.map(createShowCard);
-    main.append(...showCard);
-  } else {
-    if (state.searchTerm == "") {
-      episodesNumber.textContent = `Displaying ${
-        state.episodes[showsSelect.value].length
-      }/${state.episodes[showsSelect.value].length} episodes`;
-      const episodeCard =
-        state.episodes[showsSelect.value].map(createEpisodeCard);
-      main.innerHTML = "";
-      main.append(...episodeCard);
-    } else {
-      const filteredEpisodes = filterEpisodes();
+// NO LONGER NEEDED, ELEMINATE SOON
+// function render() {
+//   if (state.showsListing) {
+//     episodesSelect.style.display = `none`;
+//     let filteredShows = state.shows.filter((show) => {
+//       return (
+//         show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+//         show.summary
+//           .toLowerCase()
+//           .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
+//           .includes(state.searchTerm.toLowerCase())
+//       );
+//     });
+//     main.innerHTML = "";
+//     episodesNumber.textContent = "";
+//     let showCard = filteredShows.map(createShowCard);
+//     main.append(...showCard);
+//   } else {
+//     if (state.searchTerm == "") {
+//       episodesNumber.textContent = `Displaying ${
+//         state.episodes[showsSelect.value].length
+//       }/${state.episodes[showsSelect.value].length} episodes`;
+//       const episodeCard =
+//         state.episodes[showsSelect.value].map(createEpisodeCard);
+//       main.innerHTML = "";
+//       main.append(...episodeCard);
+//     } else {
+//       const filteredEpisodes = filterEpisodes();
 
-      //Rendering number of filtered episodes
-      episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
-        state.episodes[showsSelect.value].length
-      } episodes`;
-      const episodeCard = filteredEpisodes.map(createEpisodeCard);
-      main.innerHTML = "";
-      // Remember we need to append the card to the DOM for it to appear.
-      main.append(...episodeCard);
-    }
-  }
-}
+//       //Rendering number of filtered episodes
+//       episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
+//         state.episodes[showsSelect.value].length
+//       } episodes`;
+//       const episodeCard = filteredEpisodes.map(createEpisodeCard);
+//       main.innerHTML = "";
+//       // Remember we need to append the card to the DOM for it to appear.
+//       main.append(...episodeCard);
+//     }
+//   }
+// }
 
 //dividing render function into render shows and render episodes
 function renderEpisodes(episodes) {
   if (state.searchTerm == "") {
-    episodesNumber.textContent = `Displaying ${
+    OccurrenceOfAValue.textContent = `Displaying ${
       state.episodes[showsSelect.value].length
     }/${state.episodes[showsSelect.value].length} episodes`;
     const episodeCard =
@@ -183,7 +184,7 @@ function renderEpisodes(episodes) {
     const filteredEpisodes = filterEpisodes();
 
     //Rendering number of filtered episodes
-    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
+    OccurrenceOfAValue.textContent = `Displaying ${filteredEpisodes.length}/${
       state.episodes[showsSelect.value].length
     } episodes`;
     const episodeCard = filteredEpisodes.map(createEpisodeCard);
@@ -191,7 +192,8 @@ function renderEpisodes(episodes) {
     // Remember we need to append the card to the DOM for it to appear.
     main.append(...episodeCard);
   }
-  createSelectorEpisodes()
+  createSelectorEpisodes(episodes)
+  episodesSelect.style.display = `inline`
 }
 
 function renderShows() {
@@ -205,8 +207,10 @@ function renderShows() {
         .includes(state.searchTerm.toLowerCase())
     );
   });
+  OccurrenceOfAValue.textContent = `Displaying ${filteredShows.length}/${
+    state.shows.length
+  } shows`;
   main.innerHTML = "";
-  episodesNumber.textContent = "";
   let showCard = filteredShows.map(createShowCard);
   main.append(...showCard);
 }
@@ -230,11 +234,15 @@ function filterEpisodes() {
 
 function handleShowSelect() {
   if (showsSelect.value == "all") {
+      inputSearch.value = ""
+    state.searchTerm = ""
     state.showsListing = true;
     renderShows();
   } else {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     state.showsListing = false;
+    inputSearch.value = ""
+    state.searchTerm = ""
     if (Object.keys(state.episodes).includes(showsSelect.value)) {
       renderEpisodes(state.episodes[showsSelect.value]);
     } else {
@@ -249,6 +257,8 @@ function handleShowTitleClick(event) {
     episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
     state.showsListing = false;
     const showValue = showsSelect.value;
+    inputSearch.value = ""
+    state.searchTerm = ""
     if (Object.keys(state.episodes).includes(showValue)) {
       renderEpisodes(state.episodes[showValue]);
     } else {
@@ -268,6 +278,7 @@ function setup() {
     console.log("renderShowsList");
     renderShows();
   });
+
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
@@ -298,7 +309,7 @@ function setup() {
         return;
       }
       const selectedEpisodeCard = createEpisodeCard(selectedEpisode);
-      episodesNumber.textContent = `Displaying ${1}/${
+      OccurrenceOfAValue.textContent = `Displaying ${1}/${
         state.episodes.length
       } episodes`;
       main.append(selectedEpisodeCard);
@@ -312,7 +323,9 @@ function setup() {
 h.addEventListener(`click`, () => {
   state.showsListing = true;
   showsSelect.value = "all";
-  render();
+  inputSearch.value = ""
+  state.searchTerm = ""
+  renderShows();
 });
 
 window.onload = setup;

@@ -9,7 +9,7 @@
   </head>
 
   <body>
-    <h1>Andrei's Cinema</h1>
+    <h1 id="head">Andrei's Cinema</h1>
     <h2 id="errorMessage"></h1>
     <h2 id="loadingMessage"></h2>
     <header id="header">
@@ -21,29 +21,31 @@
         <option value="1111">All episodes</option>
       </select>
       <input type="search" id="input" />
-      <h2 id="episodesNumber"></h2>
+      <h2 id="OccurrenceOfAValue"></h2>
     </header>
 
     <main id="main"></main>
 <!-- Episode template -->
     <template id="episode-card">
-      <article>
-        <h3>Episode title</h3>
-        <img src="" />
-        <summary>Summary</summary>
+      <article class = "episodeCard">
+        <h3 class = "episodeTitle">Episode title</h3>
+        <img class = "episodeImage" src="" />
+        <summary class = "episodeSummary">Summary</summary>
       </article>
     </template>
 <!-- Show template -->
     <template id="show-card">
-      <article>
-        <h3 class = "showTitle">Show title</h3>
-        <img src="" />
-        <summary>Summary</summary>
-        <div class = "info">
-          <a class = "score">Score:</a>
-          <a class = "genre">Genre:</a>
-          <a class = "status">Status:</a>
-          <a class = "runtime">Runtime:</a>
+      <article class = "showCard">
+        <h2 class = "showTitle">Show title</h2>
+        <div class = "cardContent">
+          <img class = "showImage" src="" />
+          <summary class = "showSummary">Summary</summary>
+          <div class = "info">
+            <a class = "score">Score:</a>
+            <a class = "genre">Genre:</a>
+            <a class = "status">Status:</a>
+            <a class = "runtime">Runtime:</a>
+          </div>
         </div>
       </article>
     </template>
