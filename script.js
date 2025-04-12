@@ -131,6 +131,7 @@ function fetchAndAddEpisodes(id) {
 //Rendering episodes
 function render() {
   if (state.showsListing) {
+    episodesSelect.style.display = `none`;
     let filteredShows = state.shows.filter((show) => {
       return (
         show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
@@ -170,16 +171,31 @@ function render() {
 
 //dividing render function into render shows and render episodes
 function renderEpisodes(episodes) {
-  createSelectorEpisodes(episodes);
-  episodesNumber.textContent = `Displaying ${episodes.length}/${
-    state.episodes[showsSelect.value].length
-  } episodes`;
-  const episodeCard = episodes.map(createEpisodeCard);
-  main.innerHTML = "";
-  main.append(...episodeCard);
+  if (state.searchTerm == "") {
+    episodesNumber.textContent = `Displaying ${
+      state.episodes[showsSelect.value].length
+    }/${state.episodes[showsSelect.value].length} episodes`;
+    const episodeCard =
+      state.episodes[showsSelect.value].map(createEpisodeCard);
+    main.innerHTML = "";
+    main.append(...episodeCard);
+  } else {
+    const filteredEpisodes = filterEpisodes();
+
+    //Rendering number of filtered episodes
+    episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
+      state.episodes[showsSelect.value].length
+    } episodes`;
+    const episodeCard = filteredEpisodes.map(createEpisodeCard);
+    main.innerHTML = "";
+    // Remember we need to append the card to the DOM for it to appear.
+    main.append(...episodeCard);
+  }
+  createSelectorEpisodes()
 }
 
 function renderShows() {
+  episodesSelect.style.display = `none`;
   let filteredShows = state.shows.filter((show) => {
     return (
       show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
@@ -198,7 +214,7 @@ function renderShows() {
 function filterEpisodes() {
   const showId = showsSelect.value;
   const notNullEpisodes = state.episodes[showId].filter((episode) => {
-    return (episode.summary != null);
+    return episode.summary != null;
   });
   const filteredEpisodes = notNullEpisodes.filter((episode) => {
     return (
@@ -213,12 +229,17 @@ function filterEpisodes() {
 }
 
 function handleShowSelect() {
-  episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
-  state.showsListing = false;
-  if (Object.keys(state.episodes).includes(showsSelect.value)) {
-    renderEpisodes(state.episodes[showsSelect.value]);
+  if (showsSelect.value == "all") {
+    state.showsListing = true;
+    renderShows();
   } else {
-    fetchAndAddEpisodes(showsSelect.value);
+    episodesSelect.innerHTML = "<option value=1111>All episodes</option>";
+    state.showsListing = false;
+    if (Object.keys(state.episodes).includes(showsSelect.value)) {
+      renderEpisodes(state.episodes[showsSelect.value]);
+    } else {
+      fetchAndAddEpisodes(showsSelect.value);
+    }
   }
 }
 
@@ -245,22 +266,20 @@ function setup() {
     createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
     console.log("renderShowsList");
-    render();
+    renderShows();
   });
-
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
-    console.log(state.searchTerm)
+    console.log(state.searchTerm);
     if (state.showsListing) {
       renderShows();
     } else {
       if (state.searchTerm.length == 0) {
-        renderEpisodes(state.episodes[showsSelect.value])
+        renderEpisodes(state.episodes[showsSelect.value]);
       } else {
         const filteredEpisodes = filterEpisodes();
         renderEpisodes(filteredEpisodes);
-
       }
     }
   });
@@ -268,8 +287,7 @@ function setup() {
   episodesSelect.addEventListener("change", () => {
     const episodeValue = +episodesSelect.value;
     if (episodeValue === 1111) {
-      console.log("1111");
-      render();
+      renderEpisodes(state.episodes[showsSelect.value]);
     } else {
       main.innerHTML = "";
 
@@ -293,6 +311,7 @@ function setup() {
 
 h.addEventListener(`click`, () => {
   state.showsListing = true;
+  showsSelect.value = "all";
   render();
 });
 
