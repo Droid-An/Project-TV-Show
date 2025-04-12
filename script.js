@@ -128,49 +128,8 @@ function fetchAndAddEpisodes(id) {
     renderEpisodes(state.episodes[id]);
   });
 }
-//Rendering episodes
-// NO LONGER NEEDED, ELEMINATE SOON
-// function render() {
-//   if (state.showsListing) {
-//     episodesSelect.style.display = `none`;
-//     let filteredShows = state.shows.filter((show) => {
-//       return (
-//         show.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-//         show.summary
-//           .toLowerCase()
-//           .replace(/<\/?p>|<\/?br>|<\/?b>|<\/?i>|<br \/>/g, "")
-//           .includes(state.searchTerm.toLowerCase())
-//       );
-//     });
-//     main.innerHTML = "";
-//     episodesNumber.textContent = "";
-//     let showCard = filteredShows.map(createShowCard);
-//     main.append(...showCard);
-//   } else {
-//     if (state.searchTerm == "") {
-//       episodesNumber.textContent = `Displaying ${
-//         state.episodes[showsSelect.value].length
-//       }/${state.episodes[showsSelect.value].length} episodes`;
-//       const episodeCard =
-//         state.episodes[showsSelect.value].map(createEpisodeCard);
-//       main.innerHTML = "";
-//       main.append(...episodeCard);
-//     } else {
-//       const filteredEpisodes = filterEpisodes();
 
-//       //Rendering number of filtered episodes
-//       episodesNumber.textContent = `Displaying ${filteredEpisodes.length}/${
-//         state.episodes[showsSelect.value].length
-//       } episodes`;
-//       const episodeCard = filteredEpisodes.map(createEpisodeCard);
-//       main.innerHTML = "";
-//       // Remember we need to append the card to the DOM for it to appear.
-//       main.append(...episodeCard);
-//     }
-//   }
-// }
 
-//dividing render function into render shows and render episodes
 function renderEpisodes(episodes) {
   if (state.searchTerm == "") {
     OccurrenceOfAValue.textContent = `Displaying ${
