@@ -10,7 +10,7 @@ const episodesSelect = document.querySelector("#episodes-select");
 const errorMessage = document.querySelector("#errorMessage");
 const loadingMessage = document.querySelector("#loadingMessage");
 const showsSelect = document.querySelector("#show-select");
-const h = document.querySelector("h1");
+const pageHead = document.querySelector("h1");
 
 // Define state
 const state = {
@@ -92,6 +92,7 @@ function createSelectorShows(shows) {
   });
 }
 
+//fetch shows data
 const fetchShows = async () => {
   try {
     errorMessage.style.display = `none`;
@@ -227,24 +228,24 @@ function handleShowTitleClick(event) {
 }
 
 function setup() {
-  // fetching data
 
+  // fetch shows, sort and render them
   fetchShows().then((shows) => {
     // When the fetchShows Promise resolves, this callback will be called.
     state.shows = shows.sort((a, b) => a.name.localeCompare(b.name));
     createSelectorShows(state.shows);
     loadingMessage.style.display = `none`;
-    console.log("renderShowsList");
     renderShows();
   });
 
   // Implementing live search filtering
   inputSearch.addEventListener("keyup", () => {
     state.searchTerm = inputSearch.value;
-    console.log(state.searchTerm);
+    // if we are on the shows page, search and render shows
     if (state.showsListing) {
       renderShows();
     } else {
+      // if search bar is empty, render all episodes of the show, even if they doesn't has summary or title
       if (state.searchTerm.length == 0) {
         renderEpisodes(state.episodes[showsSelect.value]);
       } else {
@@ -279,7 +280,7 @@ function setup() {
   main.addEventListener("click", (event) => handleShowTitleClick(event));
 }
 
-h.addEventListener(`click`, () => {
+pageHead.addEventListener(`click`, () => {
   state.showsListing = true;
   showsSelect.value = "all";
   inputSearch.value = ""
